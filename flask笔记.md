@@ -52,7 +52,37 @@ def book_list():
  * Running on http://127.0.0.1:5000/ (Press CTRL+C to quit)
 ```
 
+### 1.2 请求-响应循环
 
+1.   flask全局上下文
+
+     ![image-20230811121402132](https://cdn.jsdelivr.net/gh/moonchildink/image@main/imgs/image-20230811121402132.png)
+
+     `g`可用于临时存储相关变量，该变量全局可访问；
+
+     `request`：用于封装客户端发送的HTTP请求报文
+
+     `session`：会话？类似asp.net中的session吗:question:
+
+     `current_app`：当前应用实例
+
+
+
+### 1.3 Cookie
+
+1.   流程
+     1.   登录
+     2.   服务端验证用户名和密码，设置好cookie后返回给浏览器
+     3.   浏览器端保存cookie到本地
+     4.   浏览器再次发送请求时会自动携带浏览器cookie
+     5.   服务端取出对应cookie，返回相应的用户数据
+2.   特点
+     1.   客户端会话技术
+     2.   数据存储在客户端之中
+     3.   浏览器再访问时会自动携带当前cookie
+     4.   不能跨域、跨浏览器
+3.   实现
+     1.   设置cookie：`response.set_cookir(key,value,)`
 
 
 
@@ -96,6 +126,18 @@ with app.app_context():
 ```
 
 **注意：**如果直接执行`rs = conn.execute("select 1")`报错，使用`conn.execute(conn("select 1"))`即可。
+
+:question:：为什么此处需要使用`with app.app_context()`来请求应用的上下文？
+
+**数据库初始化：**
+
+首先在Mysql Workbench之中创建相应的数据库（Schema）；
+
+`app/__init__.py`:首先创建`SQLAlchemy()`对象，之后在工厂函数中执行：`db.init_app(app)`
+
+`flasky.py`：`with app.app_context(): db.creat_all()`
+
+之后会自动检索在`model.py`之中的数据库模型，之后创建tables.
 
 ### 3.2 ORM模型
 
@@ -224,4 +266,125 @@ def delete_user():
     db.session.commit()
     return "数据查找成功！"
 ```
+
+
+
+
+
+## 4. 工程化
+
+### 4.1 项目结构以及配置
+
+#### 4.1.1 项目结构
+
+```
+|-flasky
+  |-app/
+    |-templates/
+    |-static/
+    |-main/				# main blueprint
+      |-__init__.py
+      |-errors.py
+      |-forms.py
+      |-views.py
+    |-__init__.py
+    |-email.py
+    |-models.py
+  |-migrations/
+  |-tests/
+    |-__init__.py
+    |-test*.py
+  |-venv/
+  |-requirements.txt
+  |-config.py
+  |-flasky.py
+```
+
+#### 4.1.2 项目配置
+
+
+
+
+
+### 4.2 蓝本
+
+#### 4.2.1 为什么需要蓝本
+
+1.   对于应用包（app），需要使用工厂函数，对其进行定制的初始化。
+2.   封装模块内容
+
+可以在注册蓝本的`register_blueprint`函数中，使用`subdomain`参数来指定子域名，比如`api.example.com`
+
+
+
+
+
+
+
+
+
+### 钩子函数
+
+也叫中间件
+
++   `app.before_first_request`：部署第一次请求之前执行
++   `app.before_request`：每次响应请求之前执行：可以在此函數之中，添加session或者flask_login判斷
++   `blueprint.context_processor`：
++   `blueprint.errorhandler`：處理錯誤，可以寫成`errorhandler(404),errorhandler(500)`
+
+![image-20230817101455963](https://cdn.jsdelivr.net/gh/moonchildink/image@main/imgs/image-20230817101455963.png)
+
+>   实际部署中，WebAPI可以作为单独的程序，也可以和传统的Flask程序进行组合，比如使用传统模式编写认证系统，编写API返回资源
+
+
+
++   添加跨域支持
++   识别客户端类型
++   
+
+
+
+
+
+## SQL语句
+
+创建数据库：`CREATE SCHEMA `new_database` DEFAULT CHARACTER SET utf8mb4 ;`
+
+数据库查询：`SELECT column1,column2... FROM  schema.table WHERE condition `
+
+
+
+
+
+## 开发设计
+
+**数据库设计**
+
+Role
+
+-   Administrator
+-   User
+-   Default
+
+
+
+**添加跨域支持**
+
+```python
+from flask_cros import CROS
+
+CROS(api_blueprint)			# 将该部分代码添加到蓝本的__init__文件之中即可
+```
+
+
+
+
+
+**功能模块**
+
+-   用户注册、登录以及验证，主要是实现识别当前用户。似乎在uniapp前端也包含本地cookie
+-   手语识别，这个类似直播推流
+-   
+
+
 
